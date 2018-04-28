@@ -8,6 +8,7 @@ package engineer.maxbarraclough.setindexer_CLI;
 // import java.util.List;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -22,7 +23,15 @@ import org.apache.commons.cli.*;
  */
 public final class Main {
 
+    private static final class OpenInputFileException extends Exception {
+    }
+
+    private static final class OpenOutputFileException extends Exception {
+    }
+
     public static void main(final String[] args) throws ParseException {
+
+        boolean exitWithError = false;
 
         try {
 
@@ -35,58 +44,64 @@ public final class Main {
             final boolean dOptionSet = cl.hasOption('d');
 
             if (eOptionSet == dOptionSet) {
+                exitWithError = true;
                 System.err.println("Either the \"-e\" option or the \"-d\" option must be specified");
                 // Game over, do not continue
             } else {
-
-                final boolean encodeMode = eOptionSet;
-
                 // // // TODO does it throw if the user fails to specify mandatory args, etc?????
                 // // // TODO do we handle multiple appearances of flags? existence of invalid flags?
+
                 // It returns Object, but String#toString() is the identity function.
                 // In case of unexpected trouble, throws ParseException.
                 // If arg not found, returns null.
                 final Object inputArg_Obj = cl.getParsedOptionValue("i");
-                final String inputArg_Str = (null == inputArg_Obj ? null : inputArg_Obj.toString());
+                final String inputArg_Str = (null == inputArg_Obj ? null : inputArg_Obj.toString()); // TODO is null possible here?
 
+                InputStream inputStream = null;
 
-               InputStream inputStream = null;
-
-                if ("-".equals(inputArg_Str))
-                {
+                if ("-".equals(inputArg_Str)) {
                     inputStream = System.in;
-                }
-                else
-                {
-                    inputStream = new FileInputStream(inputArg_Str);
-                    // TODO handle failure
+                } else {
+                    try {
+                        inputStream = new FileInputStream(inputArg_Str);
+                    } catch (final FileNotFoundException exc) { // slightly misleading name, see
+                        // https://docs.oracle.com/javase/7/docs/api/java/io/FileInputStream.html#FileInputStream(java.lang.String)
+                        throw new OpenInputFileException();
+                    }
                 }
 
                 final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
                 // https://stackoverflow.com/a/9938559/
-
 
                 final Object ouputArg_Obj = cl.getParsedOptionValue("i");
                 final String outputArg_Str = (null == ouputArg_Obj ? null : ouputArg_Obj.toString());
 
                 OutputStream outputStream = null;
 
-                if ("-".equals(outputArg_Str))
-                {
+                if ("-".equals(outputArg_Str)) {
                     outputStream = System.out;
-                }
-                else
-                {
-                    outputStream = new FileOutputStream(outputArg_Str);
-                    // TODO handle failure
+                } else {
+                    try {
+                        outputStream = new FileOutputStream(outputArg_Str);
+                    } catch (final FileNotFoundException exc) {
+                        throw new OpenOutputFileException();
+                    }
                 }
 
                 final OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
 
             }
-        } catch (Exception exc) {
-            int dummy = -1;
+        } catch (final OpenInputFileException exc) {
+            exitWithError = true;
+            System.err.println("Unable to open the specified input file. Exiting.");
+        } catch (final OpenOutputFileException exc) {
+            exitWithError = true;
+            System.err.println("Unable to open the specified output file. Exiting.");
         } finally {
+        }
+
+        if (exitWithError) {
+            System.exit(1);
         }
     }
 
