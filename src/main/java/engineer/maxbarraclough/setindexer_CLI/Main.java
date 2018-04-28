@@ -3,6 +3,17 @@
  */
 package engineer.maxbarraclough.setindexer_CLI;
 
+// import java.util.Arrays;
+// import java.util.Collections;
+// import java.util.List;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.cli.*;
 
 /**
@@ -11,19 +22,81 @@ import org.apache.commons.cli.*;
  */
 public final class Main {
 
+    public static void main(final String[] args) throws ParseException {
 
-    public static void main(final String[] args) {
+        try {
 
+            // No good: the param is of type String[]
+            // final List<String> asList = Arrays.asList(args);
+            // final List<String> asUnmodList = Collections.unmodifiableList(asList);
+            final CommandLine cl = Main.parse(args);
+
+            final boolean eOptionSet = cl.hasOption('e');
+            final boolean dOptionSet = cl.hasOption('d');
+
+            if (eOptionSet == dOptionSet) {
+                System.err.println("Either the \"-e\" option or the \"-d\" option must be specified");
+                // Game over, do not continue
+            } else {
+
+                final boolean encodeMode = eOptionSet;
+
+                // // // TODO does it throw if the user fails to specify mandatory args, etc?????
+                // // // TODO do we handle multiple appearances of flags? existence of invalid flags?
+                // It returns Object, but String#toString() is the identity function.
+                // In case of unexpected trouble, throws ParseException.
+                // If arg not found, returns null.
+                final Object inputArg_Obj = cl.getParsedOptionValue("i");
+                final String inputArg_Str = (null == inputArg_Obj ? null : inputArg_Obj.toString());
+
+
+               InputStream inputStream = null;
+
+                if ("-".equals(inputArg_Str))
+                {
+                    inputStream = System.in;
+                }
+                else
+                {
+                    inputStream = new FileInputStream(inputArg_Str);
+                    // TODO handle failure
+                }
+
+                final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                // https://stackoverflow.com/a/9938559/
+
+
+                final Object ouputArg_Obj = cl.getParsedOptionValue("i");
+                final String outputArg_Str = (null == ouputArg_Obj ? null : ouputArg_Obj.toString());
+
+                OutputStream outputStream = null;
+
+                if ("-".equals(outputArg_Str))
+                {
+                    outputStream = System.out;
+                }
+                else
+                {
+                    outputStream = new FileOutputStream(outputArg_Str);
+                    // TODO handle failure
+                }
+
+                final OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
+
+            }
+        } catch (Exception exc) {
+            int dummy = -1;
+        } finally {
+        }
     }
 
-
-    private final CommandLine parse(final String[] args) throws ParseException
-    {
+    private static final CommandLine parse(final String[] args) throws ParseException {
         final CommandLineParser parser = new DefaultParser();
         final Options options = new Options();
 
-        options.addRequiredOption("e", "encode", true, "Encode a file of lines, the order of which isn't significant, into a blob");
-        options.addRequiredOption("d", "decode", true, "Decode a blob back into a file of lines, the order of which might not be preserved");
+        // TODO use globals and avoid 'magic string literals'
+        options.addOption("e", "encode", false, "Encode a file of lines, the order of which isn't significant, into a blob");
+        options.addOption("d", "decode", false, "Decode a blob back into a file of lines, the order of which might not be preserved");
         options.addRequiredOption("i", "input", true, "Input file path, or '-' to read standard input");
         options.addRequiredOption("o", "output", true, "Output file path, or '-' to write to standard output");
 
@@ -56,7 +129,6 @@ public final class Main {
         options.addOption("C", false, "list entries by columns");
 
         // String[] args = new String[]{"--block-size=10"};
-
         try {
             // parse the command line arguments
             final CommandLine line = parser.parse(options, args);
