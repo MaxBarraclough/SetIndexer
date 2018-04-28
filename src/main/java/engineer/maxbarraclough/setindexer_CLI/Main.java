@@ -3,10 +3,6 @@
  */
 package engineer.maxbarraclough.setindexer_CLI;
 
-// import java.util.Arrays;
-// import java.util.Collections;
-// import java.util.List;
-import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -33,63 +29,68 @@ public final class Main {
 
         boolean exitWithError = false;
 
+        final Options options = Main.generateOptions();
+
         try {
+            final CommandLine cl = Main.parse(args, options);
 
-            // No good: the param is of type String[]
-            // final List<String> asList = Arrays.asList(args);
-            // final List<String> asUnmodList = Collections.unmodifiableList(asList);
-            final CommandLine cl = Main.parse(args);
-
-            final boolean eOptionSet = cl.hasOption('e');
-            final boolean dOptionSet = cl.hasOption('d');
-
-            if (eOptionSet == dOptionSet) {
-                exitWithError = true;
-                System.err.println("Either the \"-e\" option or the \"-d\" option must be specified");
-                // Game over, do not continue
+            if (cl.hasOption('h')) { // -h can be used with or without specifying the otherwise mandatory options
+                final HelpFormatter hf = new HelpFormatter();
+                hf.printHelp("SetIndexer", options);
             } else {
-                // // // TODO does it throw if the user fails to specify mandatory args, etc?????
-                // // // TODO do we handle multiple appearances of flags? existence of invalid flags?
 
-                // It returns Object, but String#toString() is the identity function.
-                // In case of unexpected trouble, throws ParseException.
-                // If arg not found, returns null.
-                final Object inputArg_Obj = cl.getParsedOptionValue("i");
-                final String inputArg_Str = (null == inputArg_Obj ? null : inputArg_Obj.toString()); // TODO is null possible here?
+                final boolean eOptionSet = cl.hasOption('e');
+                final boolean dOptionSet = cl.hasOption('d');
 
-                InputStream inputStream = null;
-
-                if ("-".equals(inputArg_Str)) {
-                    inputStream = System.in;
+                if (eOptionSet == dOptionSet) {
+                    exitWithError = true;
+                    System.err.println("Either the \"-e\" option or else the \"-d\" option must be specified");
                 } else {
-                    try {
-                        inputStream = new FileInputStream(inputArg_Str);
-                    } catch (final FileNotFoundException exc) { // slightly misleading name, see
-                        // https://docs.oracle.com/javase/7/docs/api/java/io/FileInputStream.html#FileInputStream(java.lang.String)
-                        throw new OpenInputFileException();
+                    // // // TODO does it throw if the user fails to specify mandatory args, etc?????
+                    // // // TODO do we handle multiple appearances of flags? existence of invalid flags?
+
+                    // It returns Object, but String#toString() is the identity function.
+                    // In case of unexpected trouble, throws ParseException.
+                    // If arg not found, returns null.
+                    final Object inputArg_Obj = cl.getParsedOptionValue("i");
+                    final String inputArg_Str = (null == inputArg_Obj ? null : inputArg_Obj.toString()); // TODO is null possible here?
+
+                    InputStream inputStream = null;
+
+                    if ("-".equals(inputArg_Str)) {
+                        inputStream = System.in;
+                    } else {
+                        try {
+                            inputStream = new FileInputStream(inputArg_Str);
+                        } catch (final FileNotFoundException exc) { // slightly misleading name, see
+                            // https://docs.oracle.com/javase/7/docs/api/java/io/FileInputStream.html#FileInputStream(java.lang.String)
+                            throw new OpenInputFileException();
+                        }
                     }
-                }
 
-                final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-                // https://stackoverflow.com/a/9938559/
+                    final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                    // https://stackoverflow.com/a/9938559/
 
-                final Object ouputArg_Obj = cl.getParsedOptionValue("i");
-                final String outputArg_Str = (null == ouputArg_Obj ? null : ouputArg_Obj.toString());
+                    final Object ouputArg_Obj = cl.getParsedOptionValue("i");
+                    final String outputArg_Str = (null == ouputArg_Obj ? null : ouputArg_Obj.toString());
 
-                OutputStream outputStream = null;
+                    OutputStream outputStream = null;
 
-                if ("-".equals(outputArg_Str)) {
-                    outputStream = System.out;
-                } else {
-                    try {
-                        outputStream = new FileOutputStream(outputArg_Str);
-                    } catch (final FileNotFoundException exc) {
-                        throw new OpenOutputFileException();
+                    if ("-".equals(outputArg_Str)) {
+                        outputStream = System.out;
+                    } else {
+                        try {
+                            outputStream = new FileOutputStream(outputArg_Str);
+                        } catch (final FileNotFoundException exc) {
+                            throw new OpenOutputFileException();
+                        }
                     }
+
+                    final OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
+
+                    // ....
+
                 }
-
-                final OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
-
             }
         } catch (final OpenInputFileException exc) {
             exitWithError = true;
@@ -98,10 +99,25 @@ public final class Main {
             exitWithError = true;
             System.err.println("Unable to open the specified output file. Exiting.");
         } catch (final ParseException exc) {
-            exitWithError = true;
-            System.err.println("Invalid command-line options.");
-            System.err.println(exc.getMessage());
-            System.err.println("Exiting.");
+// -h can be used with or without specifying the otherwise mandatory options. The latter case means ParseException
+            boolean printHelp = false;
+            for (int i = 0; i != args.length; i = Math.addExact(i, 1)) // addExact is, technically, extra correct
+            {
+                if ("-h".equals(args[i]) || "--help".equals(args[i]))
+                {
+                    printHelp = true;
+                    break;
+                }
+            }
+            if (printHelp) {
+                final HelpFormatter hf = new HelpFormatter();
+                hf.printHelp("SetIndexer", options);
+            } else {
+                exitWithError = true;
+                System.err.println("Invalid command-line options.");
+                System.err.println(exc.getMessage());
+                System.err.println("Exiting.");
+            }
         } catch (final Exception exc) {
             exitWithError = true;
             System.err.println("An unexpected error occurred. Exiting.");
@@ -113,15 +129,26 @@ public final class Main {
         }
     }
 
-    private static final CommandLine parse(final String[] args) throws ParseException {
-        final CommandLineParser parser = new DefaultParser();
+    /**
+     * Intended to be called exactly once
+     *
+     * @return
+     */
+    private static final Options generateOptions() {
         final Options options = new Options();
 
         // TODO use globals and avoid 'magic string literals'
+        options.addOption("h", "help", false, "Print this message");
         options.addOption("e", "encode", false, "Encode a file of lines, the order of which isn't significant, into a blob");
         options.addOption("d", "decode", false, "Decode a blob back into a file of lines, the order of which might not be preserved");
         options.addRequiredOption("i", "input", true, "Input file path, or '-' to read standard input");
         options.addRequiredOption("o", "output", true, "Output file path, or '-' to write to standard output");
+
+        return options;
+    }
+
+    private static final CommandLine parse(final String[] args, final Options options) throws ParseException {
+        final CommandLineParser parser = new DefaultParser();
 
         final CommandLine ret = parser.parse(options, args);
         return ret;
