@@ -97,6 +97,14 @@ public final class Main {
         } catch (final OpenOutputFileException exc) {
             exitWithError = true;
             System.err.println("Unable to open the specified output file. Exiting.");
+        } catch (final ParseException exc) {
+            exitWithError = true;
+            System.err.println("Invalid command-line options.");
+            System.err.println(exc.getMessage());
+            System.err.println("Exiting.");
+        } catch (final Exception exc) {
+            exitWithError = true;
+            System.err.println("An unexpected error occurred. Exiting.");
         } finally {
         }
 
