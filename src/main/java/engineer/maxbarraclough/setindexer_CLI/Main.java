@@ -115,6 +115,7 @@ public final class Main {
                     final List<BigInteger> diffs = Encoder.encodeToDiffs(inputStreamReader);
                     // TODO attempt early closure of stream
 
+                    // This block simply dumps out in decimal/UTF-8, one line per BigInteger
                     { // How many layers of stream indirection does Java want!!??
                         final BufferedWriter bw = new BufferedWriter(outputStreamWriter);
                         final PrintWriter pw = new PrintWriter(bw); // lets us do println
