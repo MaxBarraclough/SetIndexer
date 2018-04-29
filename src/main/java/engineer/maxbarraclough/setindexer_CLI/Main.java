@@ -109,14 +109,20 @@ public final class Main {
                             throw new OpenOutputFileException();
                         }
                     }
-                    final List<BigInteger> diffs = Encoder.encodeToDiffs(inputStreamReader);
 
-                    inputStreamReader.close(); // No longer used. If it's stdin, that's still ok.
-                    inputStreamReader = null;
-                    inputStream = null;
+                    if (eOptionSet) {
 
-                    outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
-                    Main.doEncode_NumericalOutput(outputStreamWriter, diffs);
+                        final List<BigInteger> diffs = Encoder.encodeToDiffs(inputStreamReader);
+
+                        inputStreamReader.close(); // No longer used. If it's stdin, that's still ok.
+                        inputStreamReader = null;
+                        inputStream = null;
+
+                        outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
+                        Main.doEncode_NumericalOutput(outputStreamWriter, diffs);
+                    } else {
+                        System.err.println("[Decode functionality not yet implemented]");
+                    }
                 }
             }
         } catch (final OpenInputFileException exc) {
