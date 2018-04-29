@@ -9,4 +9,8 @@ package engineer.maxbarraclough.setindexer;
  */
 public final class Decoder {
 
+    private Decoder(){}
+
+
+
 }

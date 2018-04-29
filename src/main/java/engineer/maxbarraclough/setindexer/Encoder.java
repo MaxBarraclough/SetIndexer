@@ -21,6 +21,8 @@ import java.util.stream.Collectors;
  */
 public final class Encoder {
 
+    private Encoder(){}
+
     // I don't get https://stackoverflow.com/a/11176397/ why not just wrap .compare directly?
     private static final Comparator<String> stringUnicodeComparator = new Comparator<String>() {
     public int compare(String str1, String str2) {
