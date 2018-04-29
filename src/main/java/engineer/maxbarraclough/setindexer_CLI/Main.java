@@ -3,14 +3,24 @@
  */
 package engineer.maxbarraclough.setindexer_CLI;
 
+import engineer.maxbarraclough.setindexer.Encoder;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.List;
 import org.apache.commons.cli.*;
 
 /**
@@ -25,11 +35,14 @@ public final class Main {
     private static final class OpenOutputFileException extends Exception {
     }
 
-    public static void main(final String[] args) throws ParseException {
+    public static void main(final String[] args) throws ParseException, IOException {
 
         boolean exitWithError = false;
 
         final Options options = Main.generateOptions();
+
+        InputStreamReader inputStreamReader = null;
+        OutputStreamWriter outputStreamWriter = null;
 
         try {
             final CommandLine cl = Main.parse(args, options);
@@ -61,17 +74,22 @@ public final class Main {
                         inputStream = System.in;
                     } else {
                         try {
-                            inputStream = new FileInputStream(inputArg_Str);
+                            // Avoid this. https://dzone.com/articles/fileinputstream-fileoutputstream-considered-harmful
+                            // inputStream = new FileInputStream(inputArg_Str);
+                            inputStream = Files.newInputStream(Paths.get(inputArg_Str));
+
+                            // final String fullPath = new File(inputArg_Str).getAbsolutePath(); // TODO DEBUG ONLY
+                            // final int dummy = 0; // DEBUG ONLY
                         } catch (final FileNotFoundException exc) { // slightly misleading name, see
                             // https://docs.oracle.com/javase/7/docs/api/java/io/FileInputStream.html#FileInputStream(java.lang.String)
                             throw new OpenInputFileException();
                         }
                     }
 
-                    final InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                    inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
                     // https://stackoverflow.com/a/9938559/
 
-                    final Object ouputArg_Obj = cl.getParsedOptionValue("i");
+                    final Object ouputArg_Obj = cl.getParsedOptionValue("o");
                     final String outputArg_Str = ouputArg_Obj.toString();
 
                     OutputStream outputStream = null;
@@ -80,15 +98,32 @@ public final class Main {
                         outputStream = System.out;
                     } else {
                         try {
-                            outputStream = new FileOutputStream(outputArg_Str);
+                            // Fail if file already exists
+                            // TODO add a "--overwrite" CLI flag to enable overwrite
+                            outputStream = Files.newOutputStream(
+                                    Paths.get(outputArg_Str),
+                                    StandardOpenOption.WRITE,
+                                    StandardOpenOption.CREATE_NEW
+                            );
                         } catch (final FileNotFoundException exc) {
                             throw new OpenOutputFileException();
                         }
                     }
 
-                    final OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
+                    outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
 
-                    // ....
+                    final List<BigInteger> diffs = Encoder.encodeToDiffs(inputStreamReader);
+                    // TODO attempt early closure of stream
+
+                    { // How many layers of stream indirection does Java want!!??
+                        final BufferedWriter bw = new BufferedWriter(outputStreamWriter);
+                        final PrintWriter pw = new PrintWriter(bw); // lets us do println
+                        for (BigInteger bi : diffs) {
+                            pw.println(bi.toString());
+                        }
+                        pw.flush();
+                        // bw.flush();
+                    }
 
                 }
             }
@@ -104,8 +139,7 @@ public final class Main {
             boolean printHelp = false;
             for (int i = 0; i != args.length; i = Math.addExact(i, 1)) // addExact is, technically, extra correct
             { // order equals call to throw if args[i] is somehow null:
-                if (args[i].startsWith("-h") || args[i].equals("--help"))
-                {
+                if (args[i].startsWith("-h") || args[i].equals("--help")) {
                     printHelp = true;
                     break;
                 }
@@ -123,6 +157,19 @@ public final class Main {
             exitWithError = true;
             System.err.println("An unexpected error occurred. Exiting.");
         } finally {
+            // Even if one of these tidy-up operations fails, go ahead with the other before throwing
+            try {
+                if (null != inputStreamReader) { // it's fine to possibly close stdin
+                    inputStreamReader.close();
+                    inputStreamReader = null;
+                }
+            } finally {
+                if (null != outputStreamWriter) { // it's fine to possibly close stdout
+                    outputStreamWriter.flush();
+                    outputStreamWriter.close();
+                    outputStreamWriter = null;
+                }
+            }
         }
 
         if (exitWithError) {
