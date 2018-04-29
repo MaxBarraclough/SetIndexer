@@ -121,4 +121,24 @@ public final class Encoder {
         // bw.flush();
     }
 
+
+    public static final void encodeAndPrint_SerializationOutput(
+            final java.io.OutputStream outputStream, // *not* OutputStreamWriter
+            final List<BigInteger> diffs
+    )
+            throws IOException {
+
+        // following https://www.tutorialspoint.com/java/java_serialization.htm
+        // // TODO buffering
+        // // TODO think about the way we handle buffering.
+        // // It should live on the caller side.
+        final java.io.ObjectOutputStream oos
+                = new java.io.ObjectOutputStream(outputStream);
+
+        oos.writeObject(diffs);
+        oos.flush();
+
+        // No need to close
+    }
+
 }

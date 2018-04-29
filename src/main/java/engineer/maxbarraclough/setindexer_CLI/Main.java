@@ -116,11 +116,14 @@ public final class Main {
                         inputStreamReader = null;
                         inputStream = null;
 
-                        Encoder.encodeAndPrint_NumericalOutput(outputStreamWriter, diffs);
-                    } else { // decode
-                        System.err.println("[Decode functionality not yet implemented]");
+                        // TODO introduce a flag to decide which format to use
 
-                        Decoder.decode_PrintNumerical(inputStreamReader, outputStreamWriter);
+                        // Encoder.encodeAndPrint_NumericalOutput(outputStreamWriter, diffs);
+                        Encoder.encodeAndPrint_SerializationOutput(outputStream, diffs);
+                        // TODO rework the streams - doesn't use ...Writer
+                    } else { // decode
+                        // Decoder.decode_PrintNumerical(inputStreamReader, outputStreamWriter);
+                        Decoder.decode_Serialization(inputStream, outputStreamWriter);
 
                         inputStreamReader.close();
                         inputStreamReader = null;

@@ -11,6 +11,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 
 /**
@@ -22,7 +23,7 @@ public final class Decoder {
     private Decoder(){}
 
 
-    public static final void decode_PrintNumerical(
+    public static final void decode_PrintNumerical( // TODO rename to decode_Numerical
             final InputStreamReader isr,
             final OutputStreamWriter osw
     )
@@ -59,6 +60,39 @@ public final class Decoder {
         }
         pw.flush(); // don't need to close()
     }
+
+
+    public static final void decode_Serialization(
+            final java.io.InputStream inputStream,
+            final OutputStreamWriter osw
+    )
+            throws IOException, ClassNotFoundException {
+
+        // following https://www.tutorialspoint.com/java/java_serialization.htm
+        // // TODO buffering
+        final java.io.ObjectInputStream ois
+                = new java.io.ObjectInputStream(inputStream);
+
+        final Object diffsObj = ois.readObject(); // call exactly once
+
+        final List<BigInteger> diffs = (List<BigInteger>)diffsObj;
+
+        final BufferedWriter bw = new BufferedWriter(osw); // TODO move to call site
+        final PrintWriter pw = new PrintWriter(bw);
+
+        BigInteger acc = BigInteger.ZERO; // TODO micro-optimise away the first 'add' operation?
+
+        for (final BigInteger uncorrected : diffs)
+        {
+            acc = acc.add(uncorrected);
+
+            final String currentDecodedString = mapToString(acc);
+            pw.println(currentDecodedString);
+        }
+        pw.flush(); // don't need to close() anything
+    }
+
+
 
 
     /**
