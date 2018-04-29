@@ -4,6 +4,7 @@
 package engineer.maxbarraclough.setindexer_CLI;
 
 import engineer.maxbarraclough.setindexer.Encoder;
+import engineer.maxbarraclough.setindexer.Decoder;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -120,8 +121,15 @@ public final class Main {
 
                         outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
                         Encoder.encodeAndPrint_NumericalOutput(outputStreamWriter, diffs);
-                    } else {
+                    } else { // decode
                         System.err.println("[Decode functionality not yet implemented]");
+
+                        Decoder.decode_NumericalOutput(inputStreamReader);
+                        // // // // TODO sort out output stream/ret
+
+                        inputStreamReader.close();
+                        inputStreamReader = null;
+                        inputStream = null;
                     }
                 }
             }
