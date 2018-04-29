@@ -111,6 +111,8 @@ public final class Main {
                         }
                     }
 
+                    outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
+
                     if (eOptionSet) {
 
                         final List<BigInteger> diffs = Encoder.encodeToDiffs(inputStreamReader);
@@ -119,13 +121,11 @@ public final class Main {
                         inputStreamReader = null;
                         inputStream = null;
 
-                        outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
                         Encoder.encodeAndPrint_NumericalOutput(outputStreamWriter, diffs);
                     } else { // decode
                         System.err.println("[Decode functionality not yet implemented]");
 
-                        Decoder.decode_NumericalOutput(inputStreamReader);
-                        // // // // TODO sort out output stream/ret
+                        Decoder.decode_PrintNumerical(inputStreamReader, outputStreamWriter);
 
                         inputStreamReader.close();
                         inputStreamReader = null;

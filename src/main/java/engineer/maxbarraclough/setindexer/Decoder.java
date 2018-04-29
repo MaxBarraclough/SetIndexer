@@ -4,9 +4,11 @@
 package engineer.maxbarraclough.setindexer;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -21,12 +23,22 @@ public final class Decoder {
     private Decoder(){}
 
 
-    public static final void decode_NumericalOutput(final InputStreamReader isr) throws IOException
+    public static final void decode_PrintNumerical(
+            final InputStreamReader isr,
+            final OutputStreamWriter osw
+    )
+            throws IOException
     {
+        assert(null != isr);
+        assert(null != osw);
+
         final BufferedReader br = new BufferedReader(isr);
 
         // final ArrayList<BigInteger> bigIntegers = new ArrayList<>();
         // No need for this
+
+        final BufferedWriter bw = new BufferedWriter(osw);
+        final PrintWriter pw = new PrintWriter(bw);
 
         BigInteger acc = BigInteger.ZERO; // TODO micro-optimise away the first 'add' operation?
 
@@ -41,24 +53,12 @@ public final class Decoder {
             final BigInteger uncorrected = new BigInteger(line);
             // still has the special 1 byte in [0]
 
-//            final int indexOfHighestSetBit = -1; // // //
-//            final BigInteger corrected = uncorrected.clearBit(indexOfHighestSetBit);
-
             acc = acc.add(uncorrected);
 
-
             final String currentDecodedString = mapToString(acc);
-
-
-
-            //////// DEV/DEBUG ONLY. SHOULD PARAMETERISE WITH AN OUTPUT STREAM, OR RETURN A COLLECTION ////////
-            /////////////////////
-            System.out.println(currentDecodedString);
-            /////////////////////
-            /////////////////////
-
-            // bigIntegers.add(acc);
+            pw.println(currentDecodedString);
         }
+        pw.flush(); // don't need to close()
     }
 
 
