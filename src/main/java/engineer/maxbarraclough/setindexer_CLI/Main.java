@@ -150,7 +150,6 @@ public final class Main {
 
     private static final CommandLine parse(final String[] args, final Options options) throws ParseException {
         final CommandLineParser parser = new DefaultParser();
-
         final CommandLine ret = parser.parse(options, args);
         return ret;
     }
