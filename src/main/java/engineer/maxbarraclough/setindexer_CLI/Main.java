@@ -109,23 +109,14 @@ public final class Main {
                             throw new OpenOutputFileException();
                         }
                     }
+                    final List<BigInteger> diffs = Encoder.encodeToDiffs(inputStreamReader);
+
+                    inputStreamReader.close(); // No longer used. If it's stdin, that's still ok.
+                    inputStreamReader = null;
+                    inputStream = null;
 
                     outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
-
-                    final List<BigInteger> diffs = Encoder.encodeToDiffs(inputStreamReader);
-                    // TODO attempt early closure of stream
-
-                    // This block simply dumps out in decimal/UTF-8, one line per BigInteger
-                    { // How many layers of stream indirection does Java want!!??
-                        final BufferedWriter bw = new BufferedWriter(outputStreamWriter);
-                        final PrintWriter pw = new PrintWriter(bw); // lets us do println
-                        for (BigInteger bi : diffs) {
-                            pw.println(bi.toString());
-                        }
-                        pw.flush();
-                        // bw.flush();
-                    }
-
+                    Main.doEncode_NumericalOutput(outputStreamWriter, diffs);
                 }
             }
         } catch (final OpenInputFileException exc) {
@@ -177,6 +168,28 @@ public final class Main {
             System.exit(1);
         }
     }
+
+
+
+    private static final void doEncode_NumericalOutput(
+            final OutputStreamWriter outputStreamWriter,
+            final List<BigInteger> diffs
+    )
+            throws IOException
+    {
+                    // This block simply dumps out in decimal/UTF-8, one line per BigInteger.
+                    // TODO attempt a proper compact format, perhaps using
+                    { // How many layers of stream indirection does Java want!!??
+                        final BufferedWriter bw = new BufferedWriter(outputStreamWriter);
+                        final PrintWriter pw = new PrintWriter(bw); // lets us do println
+                        for (BigInteger bi : diffs) {
+                            pw.println(bi.toString());
+                        }
+                        pw.flush();
+                        // bw.flush();
+                    }
+    }
+
 
     /**
      * Intended to be called exactly once
