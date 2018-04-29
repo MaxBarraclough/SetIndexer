@@ -4,9 +4,11 @@
 package engineer.maxbarraclough.setindexer;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -113,9 +115,26 @@ public final class Encoder {
         // else bigIntegers is empty, so leave the diffs list empty
 
         return diffs; // Collections.unmodifiableList(diffs);
-
-
         // TODO somehow print out the diffs list to a compact binary representation
-
     }
+
+
+    public static final void encodeAndPrint_NumericalOutput(
+            final OutputStreamWriter outputStreamWriter,
+            final List<BigInteger> diffs
+    )
+            throws IOException {
+        // This block simply dumps out in decimal/UTF-8, one line per BigInteger.
+        // TODO attempt a proper compact format, perhaps using
+        { // How many layers of stream indirection does Java want!!??
+            final BufferedWriter bw = new BufferedWriter(outputStreamWriter);
+            final PrintWriter pw = new PrintWriter(bw); // lets us do println
+            for (BigInteger bi : diffs) {
+                pw.println(bi.toString());
+            }
+            pw.flush();
+            // bw.flush();
+        }
+    }
+
 }

@@ -119,7 +119,7 @@ public final class Main {
                         inputStream = null;
 
                         outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
-                        Main.doEncode_NumericalOutput(outputStreamWriter, diffs);
+                        Encoder.encodeAndPrint_NumericalOutput(outputStreamWriter, diffs);
                     } else {
                         System.err.println("[Decode functionality not yet implemented]");
                     }
@@ -175,26 +175,6 @@ public final class Main {
         }
     }
 
-
-
-    private static final void doEncode_NumericalOutput(
-            final OutputStreamWriter outputStreamWriter,
-            final List<BigInteger> diffs
-    )
-            throws IOException
-    {
-                    // This block simply dumps out in decimal/UTF-8, one line per BigInteger.
-                    // TODO attempt a proper compact format, perhaps using
-                    { // How many layers of stream indirection does Java want!!??
-                        final BufferedWriter bw = new BufferedWriter(outputStreamWriter);
-                        final PrintWriter pw = new PrintWriter(bw); // lets us do println
-                        for (BigInteger bi : diffs) {
-                            pw.println(bi.toString());
-                        }
-                        pw.flush();
-                        // bw.flush();
-                    }
-    }
 
 
     /**
