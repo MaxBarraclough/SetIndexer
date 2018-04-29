@@ -103,8 +103,8 @@ public final class Main {
 // This code doesn't care whether the "-h"/"--help" was intended as an argument. That's fine.
             boolean printHelp = false;
             for (int i = 0; i != args.length; i = Math.addExact(i, 1)) // addExact is, technically, extra correct
-            {
-                if ("-h".equals(args[i]) || "--help".equals(args[i]))
+            { // order equals call to throw if args[i] is somehow null:
+                if (args[i].startsWith("-h") || args[i].equals("--help"))
                 {
                     printHelp = true;
                     break;
