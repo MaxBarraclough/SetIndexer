@@ -5,17 +5,12 @@ package engineer.maxbarraclough.setindexer_CLI;
 
 import engineer.maxbarraclough.setindexer.Encoder;
 import engineer.maxbarraclough.setindexer.Decoder;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;

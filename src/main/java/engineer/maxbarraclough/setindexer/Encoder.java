@@ -13,7 +13,6 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,25 +24,11 @@ public final class Encoder {
 
     private Encoder(){}
 
-    // I don't get https://stackoverflow.com/a/11176397/ why not just wrap .compare directly?
-    private static final Comparator<String> stringUnicodeComparator = new Comparator<String>() {
-    public int compare(String str1, String str2) {
-        int ret = str1.compareTo(str2);
-        return ret;
-
-//        int res = String.CASE_INSENSITIVE_ORDER.compare(str1, str2);
-//        if (res == 0) {
-//            res = str1.compareTo(str2);
-//        }
-//        return res;
-    }
-};
-
     public static List<BigInteger> encodeToDiffs(final InputStreamReader isr) throws IOException
     {
         final BufferedReader br = new BufferedReader(isr);
 
-        final ArrayList<String> al = new ArrayList<String>(); // TODO optimise out this intermediate store. We can stream directly.
+        final ArrayList<String> al = new ArrayList<>(); // TODO optimise out this intermediate store. We can stream directly.
 
         for (String line = br.readLine(); line != null; line = br.readLine())
         {
@@ -126,15 +111,14 @@ public final class Encoder {
             throws IOException {
         // This block simply dumps out in decimal/UTF-8, one line per BigInteger.
         // TODO attempt a proper compact format, perhaps using
-        { // How many layers of stream indirection does Java want!!??
-            final BufferedWriter bw = new BufferedWriter(outputStreamWriter);
-            final PrintWriter pw = new PrintWriter(bw); // lets us do println
-            for (BigInteger bi : diffs) {
-                pw.println(bi.toString());
-            }
-            pw.flush();
-            // bw.flush();
+        // How many layers of stream indirection does Java want!!??
+        final BufferedWriter bw = new BufferedWriter(outputStreamWriter);
+        final PrintWriter pw = new PrintWriter(bw); // lets us do println
+        for (final BigInteger bi : diffs) {
+            pw.println(bi.toString());
         }
+        pw.flush();
+        // bw.flush();
     }
 
 }
