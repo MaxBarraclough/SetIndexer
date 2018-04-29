@@ -53,7 +53,7 @@ public final class Main {
                     // In case of unexpected trouble, throws ParseException.
                     // If arg not found, returns null.
                     final Object inputArg_Obj = cl.getParsedOptionValue("i");
-                    final String inputArg_Str = (null == inputArg_Obj ? null : inputArg_Obj.toString()); // TODO is null possible here?
+                    final String inputArg_Str = inputArg_Obj.toString(); // if option missing, exception already thrown
 
                     InputStream inputStream = null;
 
@@ -72,7 +72,7 @@ public final class Main {
                     // https://stackoverflow.com/a/9938559/
 
                     final Object ouputArg_Obj = cl.getParsedOptionValue("i");
-                    final String outputArg_Str = (null == ouputArg_Obj ? null : ouputArg_Obj.toString());
+                    final String outputArg_Str = ouputArg_Obj.toString();
 
                     OutputStream outputStream = null;
 
@@ -100,6 +100,7 @@ public final class Main {
             System.err.println("Unable to open the specified output file. Exiting.");
         } catch (final ParseException exc) {
 // -h can be used with or without specifying the otherwise mandatory options. The latter case means ParseException
+// This code doesn't care whether the "-h"/"--help" was intended as an argument. That's fine.
             boolean printHelp = false;
             for (int i = 0; i != args.length; i = Math.addExact(i, 1)) // addExact is, technically, extra correct
             {
